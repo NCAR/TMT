@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.20)
+project(TMTConsumer LANGUAGES C Fortran)
+find_package(TMT REQUIRED)
+add_executable(chemistry_c chemistry.c)
+target_link_libraries(chemistry_c PRIVATE musica::musica m)
+add_executable(chemistry_fortran chemistry.F90)
+target_link_libraries(chemistry_fortran PRIVATE musica::musica-fortran)

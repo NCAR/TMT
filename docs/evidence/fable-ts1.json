@@ -1,0 +1,102 @@
+{
+  "preparation_s": 66.172457,
+  "cache_hit_s": 0.092608,
+  "cells": 1000,
+  "steps": 144,
+  "dt_s": 600,
+  "profiles": [
+    {
+      "profile": 1,
+      "prepared_startup_s": 0.012797,
+      "tmt_s": 1.135146,
+      "direct_s": 1.034654,
+      "estimated_concentration_copy_s": 0.00400176,
+      "compared_values": 30096000,
+      "maximum_relative_difference": 0
+    },
+    {
+      "profile": 2,
+      "prepared_startup_s": 0.011281,
+      "tmt_s": 1.367654,
+      "direct_s": 1.264005,
+      "estimated_concentration_copy_s": 0.00400463999,
+      "compared_values": 30096000,
+      "maximum_relative_difference": 0
+    },
+    {
+      "profile": 3,
+      "prepared_startup_s": 0.009838,
+      "tmt_s": 3.332651,
+      "direct_s": 3.231097,
+      "estimated_concentration_copy_s": 0.00404064,
+      "compared_values": 30096000,
+      "maximum_relative_difference": 0
+    }
+  ],
+  "date": "2026-10-19",
+  "host": "macOS 27.0.1 arm64",
+  "dependencies": {
+    "fable": {
+      "repository": "TurboMICM",
+      "revision": "cb0f8a3020f1c0b9ec7e0ad079e79b4f4a8f9bdd"
+    },
+    "turbotuv": {
+      "repository": "TurboTUV",
+      "revision": "8d6f03de17e2f51952f0d2c7cf7f6248b7b31b7a"
+    },
+    "musica": {
+      "repository": "MUSICA",
+      "revision": "8f0d981e2ef31fad90870ffd1eed88d0cf78fe92"
+    }
+  },
+  "scenario_repository_revision": "7f338d90a29894466ea006f0d061049e4dc84ac7",
+  "validation_input_sha256": {
+    "../TurboMICM/tier3/scenarios/make_scenario.py": "babab56a0208b87197a864994f8f7622a5c72e2507223f49067218f6d621c6d4",
+    "../TurboMICM/reference/ts1_defaults.csv": "3273b20959c8e4dc49679c65b42875d497c8e713797ffe66ff8b9508fa64c09f",
+    "build/diurnal-10min/cells.csv": "4faefc73bd181e84f6e116831469ec619a916ef97742e7b8e65ad7718f9002b4",
+    "build/diurnal-10min/photolysis.csv": "d32e13f12296baf18774dbd1238b001476c380114c4ef69643636ccf573f6d3f",
+    "tests/benchmark_micm.c": "5a7e9a169959bc6467f4899ea6deff339c363d034a98da192c8f26fa07cb08a7"
+  },
+  "preparation_manifest": {
+    "abi": 1,
+    "native_identity": "dbb6e3ca660b2610d8511d24a25b1ce4a0d1721bd1c0604a7aa788fa4753748b",
+    "input_sha256": "b1406226a782aca60f3d310c3e68d26b2548637e4d9b727bfa17aac5c5f758f2",
+    "inputs": {
+      "build/_deps/fable/configs/ts1.json": "fcc477c221159bc2e46a36f03f65841fc647bcc6dd99982bdd269c7619b7df2c"
+    },
+    "tools": {
+      "check_benchmark.py": "03d2fde8a8514b5ad788e1c8f4b3f1c356d1c9ff39f6b42c5e6c7571998e0964",
+      "generate.py": "3b0c3a7b580827749df888581d52bb29ce9220152cc03ce88989d732eed76dbc",
+      "mechanism.py": "3c67cebfee897d45603240b14f065f6e1f4394507537fc7f2ded4aa5cf6fa80f",
+      "micm_baseline.py": "df1e0a391c9bda820f4a128b0c1b7319bbb8a25a19eada9749568ae421eae2e7",
+      "plot_wp.py": "2e8cd380046af6204fcf0fea9ad7133c267b7a8964333bc2f71d6af5239d3a4d",
+      "scan.py": "2b5e7293fab27f58851c7baeee7e6dca7ff81da088b22a8317b8aa8357e0cb11",
+      "summarize_scan.py": "03dfdffe6aaa4150999c21d4fab87640b654bf32557ceded5087ccf7c502a6be",
+      "test_registry.py": "8440a7bbb1831cb682904d6522d5521a5641e184956f3bf82d0788de7e10ad74",
+      "translate_ts1.py": "9792beccc7f57dd0a83d4cc538bb53752d997ebaea4aa05fb3d6d8944a962304",
+      "stage_mechanism.py": "628391236ed10c38a508559214f0ea7e40eace7119a7edb37126712e29fc9803",
+      "normalize.py": "190e8b7e5b77526e8a3f93d3a1616ea800d3f91525fe23d75d3be959880b4c85"
+    },
+    "runtime_sha256": "752a6f638922308507cc66ea2906ba1e3096c3fef48b5986937601af3b823de1",
+    "compiler": "/opt/homebrew/Cellar/gcc/15.2.0/bin/gcc-15",
+    "compiler_sha256": "6a9e8f1e0e740794a73858a57dd6dd2dfc07e0adffb8fa8f4d0b0af81c1d2015",
+    "compiler_version": "gcc-15 (Homebrew GCC 15.2.0) 15.2.0\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+    "platform": "Darwin",
+    "architecture": "arm64",
+    "width": 2,
+    "mode": "exact",
+    "ordering": "markowitz",
+    "precision": "binary64",
+    "flags": [
+      "-std=c11",
+      "-O3",
+      "-fPIC",
+      "-ffp-contract=off"
+    ],
+    "sysroot": "",
+    "sanitize": "0",
+    "constants": {},
+    "relative_tolerance": 1e-06,
+    "cache_key": "58ea02bcddb10ef13f4c1938d9e862d79ca59a0523718be7cd1eee791f0301ad"
+  }
+}

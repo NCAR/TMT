@@ -1,0 +1,9 @@
+prefix=${pcfiledir}/../..
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+Name: TMT Fortran
+Description: MUSICA-compatible Fortran modules
+Version: @PROJECT_VERSION@
+Requires: tmt
+Libs: -L${libdir} -ltmt_fortran
+Cflags: -I${includedir}/tmt/modules

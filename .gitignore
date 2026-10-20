@@ -53,3 +53,12 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# TMT build and local preparation environments
+/build*/
+/.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+/dist/
+/.pytest_cache/

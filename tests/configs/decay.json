@@ -1,0 +1,7 @@
+{
+  "version": "1.0.0", "name": "Analytical decay",
+  "species": [{"name": "A", "absolute tolerance": 1e-14}, {"name": "B", "absolute tolerance": 1e-14}],
+  "phases": [{"name": "gas", "species": [{"name": "A"}, {"name": "B"}]}],
+  "reactions": [{"type": "ARRHENIUS", "A": 0.2, "reactants": [{"species name": "A", "coefficient": 1}],
+                 "products": [{"species name": "B", "coefficient": 1}], "gas phase": "gas"}]
+}

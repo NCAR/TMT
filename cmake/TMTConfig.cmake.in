@@ -1,0 +1,12 @@
+@PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
+find_dependency(OpenMP COMPONENTS C)
+include("${CMAKE_CURRENT_LIST_DIR}/TMTTargets.cmake")
+if(NOT TARGET musica::musica)
+  add_library(musica::musica INTERFACE IMPORTED)
+  set_property(TARGET musica::musica PROPERTY INTERFACE_LINK_LIBRARIES TMT::tmt)
+endif()
+if(TARGET TMT::tmt_fortran AND NOT TARGET musica::musica-fortran)
+  add_library(musica::musica-fortran INTERFACE IMPORTED)
+  set_property(TARGET musica::musica-fortran PROPERTY INTERFACE_LINK_LIBRARIES TMT::tmt_fortran)
+endif()

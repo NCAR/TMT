@@ -1,0 +1,18 @@
+TMT
+Copyright (C) 2026 University Corporation for Atmospheric Research
+
+TMT implements adapters for the pinned sources recorded in dependencies.lock.
+The Fortran public modules and selected pure Python State, solver-parameter,
+constants, v54, and vTS1 modules are adapted from NCAR/MUSICA. Their original
+copyright and Apache-2.0 notices are retained. TMT does not compile the MUSICA
+native implementation.
+
+Fable sources and its Python generator are extracted unchanged from the
+TurboMICM tier3/fable/max revision recorded in dependencies.lock. TurboTUV,
+including its bundled libyaml parser and datasets, is also extracted unchanged.
+The TurboTUV installation includes its license and the libyaml license.
+
+The compatibility investigation also inspected NCAR/MechanismConfiguration
+revision fa34180f5c501bf654f089b9a14305876a86eefa, pinned by the selected MUSICA
+revision. This reference is not a build dependency. No code from that native
+implementation is compiled or installed by TMT.

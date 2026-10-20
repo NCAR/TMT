@@ -44,7 +44,7 @@ Use CMake build rules owned by TMT for unchanged native sources. Support explici
 dependency-directory overrides. Build outputs, generated files, logs, caches,
 packaging, documentation, and tests all belong in TMT-owned locations.
 
-Proposed layout:
+Implemented layout:
 
 ```text
 cmake/                  dependency builds and installation
@@ -241,10 +241,22 @@ completion.
 
 ## Progress
 
-- [ ] P0 Foundation and inventory
-- [ ] P1 TurboTUV C
-- [ ] P2 TurboTUV Fortran/Python
-- [ ] P3 Fable preparation
-- [ ] P4 Fable C
-- [ ] P5 Fable Fortran/Python
-- [ ] P6 Coupling, packaging, verification
+- [x] P0 Foundation and inventory
+- [x] P1 TurboTUV C
+- [x] P2 TurboTUV Fortran/Python
+- [x] P3 Fable preparation
+- [x] P4 Fable C
+- [x] P5 Fable Fortran/Python
+- [x] P6 Coupling, packaging, verification
+
+Completed October 19, 2026 for the gas-chemistry/photolysis contract in
+[COMPATIBILITY.md](docs/COMPATIBILITY.md). That contract records foreign-object
+conversions, supported methods, API differences, and unsupported components.
+The callback inventory found no portable native lambda registration contract;
+external-model constraints require separate adapters. No implementation was
+added to the sibling repositories.
+
+[VALIDATION.md](docs/VALIDATION.md) records upstream tests, numerical criteria,
+sanitizers, compiler coverage, relocated installation, and performance evidence.
+It distinguishes adapter parity from independent scientific validation and
+identifies untested platforms. [BUILD.md](docs/BUILD.md) gives usage commands.

@@ -1,0 +1,8 @@
+prefix=${pcfiledir}/../..
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+Name: TMT
+Description: MUSICA-compatible Fable and TurboTUV APIs
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -ltmt
+Cflags: -I${includedir}

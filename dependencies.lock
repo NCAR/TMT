@@ -1,0 +1,5 @@
+{
+  "fable": {"repository": "TurboMICM", "revision": "cb0f8a3020f1c0b9ec7e0ad079e79b4f4a8f9bdd"},
+  "turbotuv": {"repository": "TurboTUV", "revision": "8d6f03de17e2f51952f0d2c7cf7f6248b7b31b7a"},
+  "musica": {"repository": "MUSICA", "revision": "8f0d981e2ef31fad90870ffd1eed88d0cf78fe92"}
+}
