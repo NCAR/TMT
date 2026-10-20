@@ -31,7 +31,7 @@ commands, tolerances, timings, and evidence limits.
 | --- | --- | --- | --- |
 | Common | `musica/musica.h`, `musica/utils/error.h` | `musica`, `musica_util` | Errors become exceptions; `musica.utils` provides resource paths |
 | Chemistry | `musica/micm.h` | `musica_micm`, `musica_state` | `MICM`, `State`, `Conditions`, `SolverType`, solver parameters/results |
-| Photolysis | `musica/tuvx.h` | `musica_tuvx` and grid/profile/radiator/map/updater modules | `TUVX`, `Grid`, `Profile`, `Radiator`, maps, `RadiationFieldUpdater` |
+| Photolysis | `musica/tuvx.h` | `musica_tuvx` and grid/profile/radiator/map modules | `TUVX`, `Grid`, `Profile`, `Radiator`, maps, `RadiationFieldUpdater` |
 | Authoring | `Chemistry.configuration` contains serialized text | File/prepared-directory constructor | `musica.mechanism_configuration`: species, phase, components, twelve gas reaction classes, `Mechanism`, `Reactions`, `Version`, `parse` |
 | TMT extensions | `tmt/prepare.h`, `tmt/fable.h` | `micm%configure_fable(profile,error)` | `tmt.prepare`, `tmt.configure_fable` |
 
