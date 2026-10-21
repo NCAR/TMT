@@ -11,6 +11,7 @@ from __future__ import annotations
 import copy
 import json
 import math
+import re
 from pathlib import Path
 
 PREFIX = {"PHOTOLYSIS": "PHOTO.", "EMISSION": "EMIS.",
@@ -68,6 +69,16 @@ def load(path, content=None):
         from mechanism import _yaml_loader
         class Loader(_yaml_loader()):
             pass
+        # YAML 1.1 treats NO, ON, etc. as Booleans, corrupting chemical names.
+        # Keep Fable's numeric resolver but use YAML 1.2 Boolean spellings.
+        Loader.yaml_implicit_resolvers = {
+            key: [(tag, pattern) for tag, pattern in resolvers
+                  if tag != 'tag:yaml.org,2002:bool']
+            for key, resolvers in Loader.yaml_implicit_resolvers.items()
+        }
+        Loader.add_implicit_resolver(
+            'tag:yaml.org,2002:bool',
+            re.compile(r'^(?:true|True|TRUE|false|False|FALSE)$'), list('tTfF'))
         def mapping(loader, node):
             loader.flatten_mapping(node)
             return pairs((loader.construct_object(k), loader.construct_object(v)) for k, v in node.value)
@@ -247,6 +258,10 @@ def normalize(path):
             by_name[name] = s
         species = []
         for ps in phases[0]["species"]:
+            if isinstance(ps, str):
+                ps = {"name": ps}
+            if not isinstance(ps, dict):
+                raise ValueError("phase species must be a name or a mapping")
             reject_extra(ps, {"name", "diffusion coefficient [m2 s-1]", "density [kg m-3]"}, "phase species")
             name = ps["name"]
             if name not in by_name:

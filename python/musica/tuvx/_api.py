@@ -371,7 +371,7 @@ class TUVX(Object):
         return updater
 
     def run(self, sza, earth_sun_distance):
-        """Run with the reference model's zenith convention: degrees, distance in AU."""
+        """Run with zenith angle in radians and multiplicative Earth-Sun scaling."""
         nz, nw, np_, nh, nd = self._shape
         photo, heat, dose = (np.empty((n, nz)) for n in (np_, nh, nd))
         flux, irr = np.empty((nw, nz, 3)), np.empty((nw, nz, 3))
@@ -385,7 +385,7 @@ class TUVX(Object):
                 "dose_rates": (("dose_rate", "vertical_edge"), dose, {"units": "W m^-2"}),
                 "actinic_flux": (("wavelength_midpoint", "vertical_edge", "component"), flux, {"units": "1"}),
                 "spectral_irradiance": (("wavelength_midpoint", "vertical_edge", "component"), irr, {"units": "1"}),
-                "solar_zenith_angle": ((), sza, {"units": "degrees"}),
+                "solar_zenith_angle": ((), sza, {"units": "radians"}),
                 "earth_sun_distance": ((), earth_sun_distance, {"units": "1", "description": "Multiplicative Earth-Sun radiation scaling factor"}),
             }, coords={
                 "reaction": list(self.photolysis_rate_names), "heating_rate": list(self.heating_rate_names),

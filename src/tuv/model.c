@@ -1,6 +1,7 @@
 /* Copyright (C) 2026 University Corporation for Atmospheric Research
  * SPDX-License-Identifier: Apache-2.0 */
 #include "objects.h"
+#include <math.h>
 
 static const tt_dataset *resolve_dataset(void *context,const char *path) {
     (void)context;
@@ -135,7 +136,10 @@ static int synchronize(TUVX *t,Error *e){
 void RunTuvx(TUVX *t,double zenith,double distance,double *photo,double *heat,double *dose,double *flux,double *irr,Error *e){
     NoError(e);if(!t){tmt_error(e,"Null model");return;}if(!synchronize(t,e))return;
     const tt_model_result *result=NULL;tt_error detail={0};
-    if(!tmt_status(tt_model_run(t->model,zenith,distance,&result,&detail),&detail,e))return;
+    /* MUSICA's public C/Fortran/Python API takes radians. Its C++ wrapper
+     * converts to degrees before calling the native radiative-transfer code. */
+    const double zenith_degrees=zenith*180.0/acos(-1.0);
+    if(!tmt_status(tt_model_run(t->model,zenith_degrees,distance,&result,&detail),&detail,e))return;
     tt_model_dimensions s=tt_model_shape(t->model);
     if(photo)memcpy(photo,result->photolysis,s.levels*s.photolysis*sizeof(double));
     if(heat)memcpy(heat,result->heating,s.levels*s.heating*sizeof(double));

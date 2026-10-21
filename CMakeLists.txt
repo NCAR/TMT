@@ -160,9 +160,15 @@ if(BUILD_TESTING)
   set_tests_properties(micm_python_upstream PROPERTIES ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}/python;TMT_LIBRARY=$<TARGET_FILE:tmt>;TMT_CACHE=${CMAKE_BINARY_DIR}/test mechanism cache")
   add_test(NAME preparation_python COMMAND "${Python3_EXECUTABLE}" -m pytest "${CMAKE_CURRENT_SOURCE_DIR}/tests/python/test_prepare.py" -q)
   set_tests_properties(preparation_python PROPERTIES ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}/python;TMT_LIBRARY=$<TARGET_FILE:tmt>;TMT_CACHE=${CMAKE_BINARY_DIR}/test mechanism cache")
+  add_test(NAME normalization_python COMMAND "${Python3_EXECUTABLE}" -m pytest "${CMAKE_CURRENT_SOURCE_DIR}/tests/python/test_normalize.py" -q)
+  set_tests_properties(normalization_python PROPERTIES ENVIRONMENT "TMT_TEST_DEPS=${TMT_DEPENDENCY_DIR}")
   add_test(NAME micm_python COMMAND "${Python3_EXECUTABLE}" -m pytest "${CMAKE_CURRENT_SOURCE_DIR}/tests/python/test_micm.py" -q)
   add_test(NAME coupled_python COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/examples/coupled.py")
   set_tests_properties(micm_python coupled_python PROPERTIES ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}/python;TMT_LIBRARY=$<TARGET_FILE:tmt>;TMT_CACHE=${CMAKE_BINARY_DIR}/test mechanism cache")
+  # Python helpers need the configured snapshots even in an out-of-tree build.
+  set_property(TEST tuv_python tuv_python_upstream micm_python_upstream
+    preparation_python micm_python coupled_python APPEND PROPERTY ENVIRONMENT
+    "TMT_CONFIGS=${TMT_DEPENDENCY_DIR}/musica/configs")
   if(TMT_SANITIZE)
     foreach(target test_tuv test_micm)
       target_compile_options(${target} PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)

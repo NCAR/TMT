@@ -20,16 +20,19 @@ def model(config=None, grids=None, profiles=None, radiators=None):
 
 def test_dataset_and_independent_models():
     with model() as m:
-        reference = m.run(30, 1.0)
+        reference = m.run(np.deg2rad(30), 1.0)
+        assert reference.solar_zenith_angle.attrs["units"] == "radians"
+        assert float(reference.solar_zenith_angle) == np.deg2rad(30)
         assert reference.actinic_flux.shape[-1] == 3
         assert list(reference.component.values) == ["direct", "upwelling", "downwelling"]
         assert len(m.photolysis_rate_names) == reference.sizes["reaction"]
         assert m.get_radiation_field_updater() is None
-        second = m.run(110, 1.0)
+        second = m.run(np.deg2rad(110), 1.0)
         assert not np.array_equal(reference.photolysis_rate_constants, second.photolysis_rate_constants)
+        np.testing.assert_array_equal(second.actinic_flux, 0)
     def run(_):
         with model() as m:
-            return m.run(30, 1.0)
+            return m.run(np.deg2rad(30), 1.0)
     with ThreadPoolExecutor(2) as pool:
         for result in pool.map(run, range(2)):
             assert result.equals(reference)
@@ -64,10 +67,10 @@ def test_host_profile_update_and_pointer_edits():
     profiles = musica.ProfileMap()
     profiles.add_profile(host)
     with model(config, profiles=profiles) as m:
-        first = m.run(30, 1)
+        first = m.run(np.deg2rad(30), 1)
         host.edge_values[:] += 20
         host.midpoint_values[:] += 20
-        second = m.run(30, 1)
+        second = m.run(np.deg2rad(30), 1)
         assert not np.array_equal(first.photolysis_rate_constants, second.photolysis_rate_constants)
         np.testing.assert_array_equal(m.get_profile_map()["temperature", "K"].edge_values, host.edge_values)
 
@@ -81,7 +84,7 @@ def test_host_radiation_and_lifetime():
     nz, nw = m._shape[:2]
     values = np.ones((nw, nz))
     updater.update(values, values * 2, values * 3)
-    result = m.run(30, 1.03)
+    result = m.run(np.deg2rad(30), 1.03)
     np.testing.assert_array_equal(result.actinic_flux[..., 0], values * 1.03)
     np.testing.assert_array_equal(result.actinic_flux[..., 1], values * 2.06)
     np.testing.assert_array_equal(result.actinic_flux[..., 2], values * 3.09)
@@ -111,7 +114,7 @@ def test_reference_helpers(helper_name,configuration):
     from importlib import import_module
     helper=import_module('musica.tuvx.'+helper_name)
     with helper.get_tuvx_calculator() as host, model(json.loads((DEPS/'turbotuv/examples'/f'{configuration}.json').read_text())) as configured:
-        actual,reference=host.run(30,1.03),configured.run(30,1.03)
+        actual,reference=host.run(np.deg2rad(30),1.03),configured.run(np.deg2rad(30),1.03)
         # The reference helpers use their own tabulated-profile interpolation.
         # The full configuration uses TurboTUV's native interpolation path.
         for field in ('photolysis_rate_constants','heating_rates','dose_rates'):

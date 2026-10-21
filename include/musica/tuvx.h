@@ -90,6 +90,7 @@ RadiationFieldUpdater* GetRadiationFieldUpdater(TUVX* tuvx, Error* error);
 void GetPhotolysisRateConstantsOrdering(TUVX* tuvx, Mappings* mappings, Error* error);
 void GetHeatingRatesOrdering(TUVX* tuvx, Mappings* mappings, Error* error);
 void GetDoseRatesOrdering(TUVX* tuvx, Mappings* mappings, Error* error);
+/* Solar zenith angle is in radians, matching MUSICA's public interface. */
 void RunTuvx( TUVX* tuvx, const double solar_zenith_angle, const double earth_sun_distance, double* const photolysis_rate_constants, double* const heating_rates, double* const dose_rates, double* const actinic_flux, double* const spectral_irradiance, Error* const error);
 void TuvxVersion(String* tuvx_version);
 /* TMT shape queries for callers allocating output buffers. */

@@ -4,7 +4,7 @@ from musica import MICM, SolverState
 from musica.mechanism_configuration import Species,Phase,Photolysis,Mechanism
 from musica.tuvx import v54
 
-photolysis=v54.get_tuvx_calculator().run(30.,1.)
+photolysis=v54.get_tuvx_calculator().run(math.radians(30.),1.)
 channel='O3+hv->O2+O(1D)'
 # Exact names and identical s-1 units; no positional or unit guessing.
 if channel not in photolysis.reaction.values:

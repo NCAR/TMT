@@ -300,7 +300,7 @@ contains
 
       ! Arguments
       class(tuvx_t),                     intent(inout) :: this
-      real(kind=dk),                     intent(in)    :: solar_zenith_angle             ! degrees
+      real(kind=dk),                     intent(in)    :: solar_zenith_angle             ! radians
       real(kind=dk),                     intent(in)    :: earth_sun_distance             ! AU
       real(kind=dk), target, contiguous, intent(inout) :: photolysis_rate_constants(:,:) ! s-1 (layer, reaction)
       real(kind=dk), target, contiguous, intent(inout) :: heating_rates(:,:)             ! K s-1 (layer, reaction)

@@ -26,6 +26,16 @@ GCC/GFortran 15.2.0; Python 3.13.13, NumPy 2.5.4, PyYAML 6.0.3, xarray
 7 TMT TUV tests, 11 preparation tests, and 15 TMT chemistry tests. The coupled
 example is an additional CTest command.
 
+On October 20, 2026, the updated suite passed all **13 CTest suites** with
+GCC/GFortran 16.2.0 and Python 3.15 in the CheMPAS-A integration build. The
+additional suite covers five YAML normalization cases, including unquoted
+`NO` and plain phase-species names. Public solar-angle inputs were corrected
+to radians; the C comparison below now passes radians to TMT and degrees to
+TurboTUV, and Python tests check nighttime radiation and the unit attribute.
+These changes and the relocated installed-consumer checks were validated
+again with that compiler. Out-of-tree Python tests use the configured
+dependency snapshot through `TMT_TEST_DEPS` and `TMT_CONFIGS`.
+
 The utility, MICM, and TUV Fortran tests come from the pinned MUSICA snapshot.
 Only error-header include paths in the utility/MICM test sources are adapted;
 the TUV test source is unchanged. An additional Fortran test exercises all three
@@ -33,7 +43,7 @@ Fable profiles. C assertions remain enabled in release tests.
 
 | Check | Criterion and outcome |
 | --- | --- |
-| TUV C, v54 and TS1, JSON and YAML | All photolysis/heating/dose values match direct TurboTUV bitwise; all six raw radiation components compare exactly at 0, 30, 85, 90, 110 degrees and radiation scaling 1.03 |
+| TUV C, v54 and TS1, JSON and YAML | All photolysis/heating/dose values and all six raw radiation components match direct TurboTUV bitwise at 0, 45, 85, 90, 110 degrees and radiation scaling 1.03; public calls receive radians, native calls receive degrees |
 | TUV host operations | Profile edits affect subsequent runs; radiation arrays and optional irradiance behave as specified; retained maps/objects/views survive owner release; independent models agree |
 | Pinned Python v54/vTS1 helpers | Photolysis/heating/dose rates agree with full configured models within relative 5e-6 plus absolute 1e-20 at 30 degrees; helper/native profile interpolation paths differ |
 | C chemistry | Generated kernels are active; direct generic Fable parity within `1e-12*max(abs(reference),1e-20)` for widths 1/2 and 1/3/33 cells over three repeated steps |
@@ -41,6 +51,7 @@ Fable profiles. C assertions remain enabled in release tests.
 | Fable L2/L3r/extrapolation | C-backed Python and Fortran solutions satisfy 0.5% relative error for analytical decay over ten 1-second steps |
 | State/ownership | Stable native pointers, partial vector groups, independent concurrent states, retained Python views/conditions, changed/reset tolerances, mismatched solver rejection |
 | Preparation | Concurrent identical requests publish one artifact; unchanged cache preserves module timestamp; changed input/includes invalidate; source strings reuse cache; moved artifacts load; bad manifests/tools/configurations fail without publication |
+| YAML normalization | Preserve chemical names such as `NO`, accept string or mapping phase species, retain numeric parsing and true/false Booleans, and leave global PyYAML resolvers unchanged |
 | Coupling | v54 ozone photolysis label maps to `PHOTO.ozone`; chemistry agrees with exponential decay using that rate |
 
 Full modern TS1 also passes the C generated-versus-generic comparison:

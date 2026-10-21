@@ -19,11 +19,15 @@ static void compare(const char *path){
     REQUIRE(photo && heat && dose && flux && irr);
     Mappings names={0};GetPhotolysisRateConstantsOrdering(model,&names,&e);REQUIRE(!e.code_ && names.size_==p);
     for(size_t i=0;i<p;++i)REQUIRE(!strcmp(names.mappings_[i].name_.value_,tt_model_rate_name(native,TT_RATE_PHOTOLYSIS,i)));
-    const double angles[]={0,30,85,90,110};
+    /* These angles round trip exactly through radians in double precision,
+     * allowing a bitwise comparison at identical native input values. */
+    const double angles[]={0,45,85,90,110};
     for(size_t k=0;k<sizeof(angles)/sizeof(*angles);++k){
         const tt_model_result *r=NULL;
         REQUIRE(tt_model_run(native,angles[k],1.03,&r,&te)==TT_OK);
-        RunTuvx(model,angles[k],1.03,photo,heat,dose,flux,irr,&e);REQUIRE(!e.code_);
+        /* Public MUSICA-compatible calls take radians; native TurboTUV takes
+         * degrees. Include oblique sun and night to catch unit regressions. */
+        RunTuvx(model,angles[k]*acos(-1.0)/180.0,1.03,photo,heat,dose,flux,irr,&e);REQUIRE(!e.code_);
         REQUIRE(!memcmp(photo,r->photolysis,z*p*sizeof(double)));
         REQUIRE(!memcmp(heat,r->heating,z*h*sizeof(double)));
         REQUIRE(!memcmp(dose,r->dose,z*d*sizeof(double)));

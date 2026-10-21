@@ -86,10 +86,11 @@ and solver status.
 
 ## TUV values and layout
 
-Solar zenith input is **degrees**, following the pinned native interface
-(`src/tuvx/interface.F90:347`). Its Python/Fortran documentation incorrectly
-labels this input radians; TMT corrects the label. The Earth-Sun argument is the
-backend's multiplicative radiation scaling factor. Raw radiation components
+Solar zenith input is **radians**, matching MUSICA's public C, Fortran, and
+Python interfaces. TMT converts to degrees for TurboTUV, just as MUSICA's
+`src/tuvx/tuvx.cpp` wrapper does before calling its native Fortran interface.
+The Earth-Sun argument is the backend's multiplicative radiation scaling
+factor. Raw radiation components
 are dimensionless; dataset attributes use `units="1"`. Photolysis rates are s-1.
 
 C radiation arrays use component-fast ordering: direct, upwelling diffuse,
