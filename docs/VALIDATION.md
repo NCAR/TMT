@@ -47,6 +47,7 @@ Fable profiles. C assertions remain enabled in release tests.
 | TUV host operations | Profile edits affect subsequent runs; radiation arrays and optional irradiance behave as specified; retained maps/objects/views survive owner release; independent models agree |
 | Pinned Python v54/vTS1 helpers | Photolysis/heating/dose rates agree with full configured models within relative 5e-6 plus absolute 1e-20 at 30 degrees; helper/native profile interpolation paths differ |
 | C chemistry | Generated kernels are active; direct generic Fable parity within `1e-12*max(abs(reference),1e-20)` for widths 1/2 and 1/3/33 cells over three repeated steps |
+| Tier 1 standard-order adapter | Direct generated Fable groups agree within `2e-14*max(abs(reference),1e-20)` for 1/31/32/33/65 cells; nonuniform conditions, host concentration/rate edits, changed tolerances, stable pointers, invalid input and atomic failure recovery are checked |
 | Compatible chemistry methods | All eight standard/vector method variants converge on analytical decay; relative error below 5e-5 over ten 0.01-second steps |
 | Fable L2/L3r/extrapolation | C-backed Python and Fortran solutions satisfy 0.5% relative error for analytical decay over ten 1-second steps |
 | State/ownership | Stable native pointers, partial vector groups, independent concurrent states, retained Python views/conditions, changed/reset tolerances, mismatched solver rejection |

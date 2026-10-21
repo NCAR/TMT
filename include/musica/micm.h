@@ -39,7 +39,9 @@ MICM *CreateMicm(const char *, MICMSolver, Error *);
 MICM *CreateMicmFromConfigString(const char *, MICMSolver, Error *);
 MICM *CreateMicmFromChemistryMechanism(const Chemistry *, MICMSolver, Error *);
 /* A prepared directory needs neither Python nor a compiler. Its generated
- * width must match the solver type (standard=1, vector=2). */
+ * width must match the solver type (standard=1, vector=2), except that
+ * TMT_MICM_TIER1=1 gives RosenbrockStandardOrder width-2 internal groups
+ * while preserving row-major public arrays. See docs/BUILD.md. */
 MICM *TmtCreateMicmPrepared(const char *, MICMSolver, Error *);
 bool TmtMicmUsesKernels(const MICM *);
 void DeleteMicm(MICM *, Error *);

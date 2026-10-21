@@ -11,6 +11,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <time.h>
 
 struct MICM {
   atomic_size_t references;
@@ -20,6 +21,7 @@ struct MICM {
   double rtol, *atol;
   size_t n_atol, generation;
   tmc_backward_euler_parameters be;
+  int tier1;
 };
 struct State {
   MICM *owner;
@@ -28,7 +30,14 @@ struct State {
   Conditions *conditions;
   size_t generation;
   int parameters_initialized;
+  size_t cells, n_groups, solve_calls;
+  tmc_state **groups;
+  FILE *trace;
 };
+static int tier1_requested(MICMSolver type) {
+  const char *value = getenv("TMT_MICM_TIER1");
+  return type == RosenbrockStandardOrder && value && !strcmp(value, "1");
+}
 static int native_error(int rc, tmc_error *err, Error *e) {
   if (rc == TMC_OK) return 1;
   ToError(err->category == TMC_ERROR_SPECIES ? "MICM Species" : "Fable Error", err->code, err->message, 2, e); return 0;
@@ -55,9 +64,10 @@ MICM *TmtCreateMicmPrepared(const char *path, MICMSolver type, Error *e) {
   MICM *m = calloc(1, sizeof *m);
   if (!m) { tmt_error(e, "allocation failed"); return NULL; }
   atomic_init(&m->references, 1); m->type = type;
+  m->tier1 = tier1_requested(type);
   if (!tmt_load_module(path, &m->module, e)) { DeleteMicm(m, NULL); return NULL; }
   const TmtMechanismV1 *api = m->module.api;
-  if (api->width != (int)GetVectorSize(type)) { tmt_error(e, "prepared mechanism width does not match solver type"); DeleteMicm(m, NULL); return NULL; }
+  if (api->width != (m->tier1 ? 2 : (int)GetVectorSize(type))) { tmt_error(e, "prepared mechanism width does not match solver configuration"); DeleteMicm(m, NULL); return NULL; }
   m->rtol = api->relative_tolerance;
   tmc_rosenbrock_parameters ros = tmc_rosenbrock_three_stage();
   if (type == RosenbrockDAE4 || type == RosenbrockDAE4StandardOrder) ros = tmc_rosenbrock_four_stage_dae();
@@ -87,6 +97,7 @@ MICM *CreateMicm(const char *path, MICMSolver type, Error *e) {
   if (n > 0 && n < (int)sizeof manifest && !stat(manifest, &st)) return TmtCreateMicmPrepared(path, type, e);
   if (stat(path, &st)) { ToError(MUSICA_PARSE_ERROR_CATEGORY, MUSICA_PARSE_ERROR_CODE_INVALID_CONFIG_FILE, "configuration path does not exist", 2, e); return NULL; }
   TmtPrepareOptions options = {0}; options.width = (int)GetVectorSize(type);
+  if (tier1_requested(type)) { options.width = 2; options.mode = "fast"; options.ordering = "minimum-fill"; }
   String artifact = {0}; TmtPrepareMechanism(path, &options, &artifact, e);
   if (!artifact.value_) return NULL;
   MICM *m = TmtCreateMicmPrepared(artifact.value_, type, e);
@@ -195,6 +206,9 @@ void FreeBackwardEulerSolverParameters(BackwardEulerSolverParametersC *p) {
 }
 void DeleteState(State *s, Error *e) {
   NoError(e); if (!s) return;
+  for (size_t g = 0; g < s->n_groups; ++g) tmc_state_free(s->groups[g]);
+  free(s->groups);
+  if (s->trace) fclose(s->trace);
   tmc_state_free(s->native); DeleteMicm(s->owner, NULL);
   free(s->concentrations); free(s->parameters); free(s->default_atol); free(s->conditions); free(s);
 }
@@ -204,7 +218,9 @@ State *CreateMicmState(MICM *m, size_t n, Error *e) {
   State *s = calloc(1, sizeof *s);
   if (!s) { tmt_error(e, "allocation failed"); return NULL; }
   s->owner = m; atomic_fetch_add(&m->references, 1);
-  s->native = tmc_solver_create_state(m->solver, (int)n);
+  s->cells = n;
+  s->native = tmc_solver_create_state(m->solver, m->tier1 ? 1 : (int)n);
+  if (!s->native) { DeleteState(s, NULL); tmt_error(e, "state allocation failed"); return NULL; }
   m->module.api->initial_state(s->native);
   s->default_atol = copy_values(tmc_state_absolute_tolerances(s->native),
                                (size_t)tmc_state_num_variables(s->native), e);
@@ -212,26 +228,51 @@ State *CreateMicmState(MICM *m, size_t n, Error *e) {
   tmc_state_set_relative_tolerance(s->native, m->rtol);
   if (m->n_atol) tmc_state_set_absolute_tolerances(s->native, m->atol, (int)m->n_atol, NULL);
   tmc_dense *y = tmc_state_variables(s->native), *p = tmc_state_custom_rate_parameters(s->native);
-  s->concentrations = copy_values(y->data, y->size, e);
-  s->parameters = copy_values(p->data, p->size, e);
+  size_t ny = m->tier1 ? n * (size_t)y->n_cols : y->size;
+  size_t np = m->tier1 ? n * (size_t)p->n_cols : p->size;
+  s->concentrations = m->tier1 ? calloc(ny, sizeof(double)) : copy_values(y->data, ny, e);
+  s->parameters = m->tier1 ? calloc(np, sizeof(double)) : copy_values(p->data, np, e);
   s->conditions = malloc(n * sizeof *s->conditions);
-  if ((y->size && !s->concentrations) || (p->size && !s->parameters) || !s->conditions) { DeleteState(s, NULL); tmt_error(e, "allocation failed"); return NULL; }
+  if ((ny && !s->concentrations) || (np && !s->parameters) || !s->conditions) { DeleteState(s, NULL); tmt_error(e, "allocation failed"); return NULL; }
   _Static_assert(sizeof(Conditions) == sizeof(tmc_conditions), "conditions ABI");
-  memcpy(s->conditions, tmc_state_conditions(s->native), n * sizeof *s->conditions);
+  if (!m->tier1) memcpy(s->conditions, tmc_state_conditions(s->native), n * sizeof *s->conditions);
+  else {
+    size_t count = (n + 31) / 32;
+    s->groups = calloc(count, sizeof *s->groups);
+    if (!s->groups) { DeleteState(s, NULL); tmt_error(e, "group allocation failed"); return NULL; }
+    s->n_groups = count;
+    for (size_t g = 0; g < count; ++g) {
+      size_t first = g * 32, cells = n - first < 32 ? n - first : 32;
+      tmc_state *group = tmc_solver_create_state(m->solver, (int)cells);
+      s->groups[g] = group;
+      if (!group) { DeleteState(s, NULL); tmt_error(e, "group state allocation failed"); return NULL; }
+      m->module.api->initial_state(group);
+      tmc_state_set_relative_tolerance(group, m->rtol);
+      tmc_state_set_absolute_tolerances(group, m->n_atol ? m->atol : s->default_atol, y->n_cols, NULL);
+      tmc_dense *gy = tmc_state_variables(group), *gp = tmc_state_custom_rate_parameters(group);
+      memcpy(s->conditions + first, tmc_state_conditions(group), cells * sizeof *s->conditions);
+      for (size_t c = 0; c < cells; ++c) {
+        for (int v = 0; v < y->n_cols; ++v) s->concentrations[(first+c)*y->n_cols+v] = tmc_dense_get(gy, (int)c, v);
+        for (int v = 0; v < p->n_cols; ++v) s->parameters[(first+c)*p->n_cols+v] = tmc_dense_get(gp, (int)c, v);
+      }
+    }
+  }
   s->generation = m->generation;
   return s;
 }
 Conditions *GetConditionsPointer(State *s, size_t *n, Error *e) {
   NoError(e); if (!s || !n) { tmt_error(e, "state and size output required"); return NULL; }
-  *n = (size_t)tmc_state_num_cells(s->native); return s->conditions;
+  *n = s->cells; return s->conditions;
 }
 double *GetOrderedConcentrationsPointer(State *s, size_t *n, Error *e) {
   NoError(e); if (!s || !n) { tmt_error(e, "state and size output required"); return NULL; }
-  *n = tmc_state_variables(s->native)->size; return s->concentrations;
+  *n = s->owner->tier1 ? s->cells * (size_t)tmc_state_num_variables(s->native) : tmc_state_variables(s->native)->size;
+  return s->concentrations;
 }
 double *GetOrderedRateParametersPointer(State *s, size_t *n, Error *e) {
   NoError(e); if (!s || !n) { tmt_error(e, "state and size output required"); return NULL; }
-  *n = tmc_state_custom_rate_parameters(s->native)->size; return s->parameters;
+  *n = s->owner->tier1 ? s->cells * (size_t)tmc_state_custom_rate_parameters(s->native)->n_cols : tmc_state_custom_rate_parameters(s->native)->size;
+  return s->parameters;
 }
 static void ordering(State *s, Mappings *out, int params, Error *e) {
   NoError(e); if (!s || !out) { tmt_error(e, "state and mappings output required"); return; }
@@ -243,19 +284,22 @@ static void ordering(State *s, Mappings *out, int params, Error *e) {
 void GetSpeciesOrdering(State *s, Mappings *out, Error *e) { ordering(s, out, 0, e); }
 void GetUserDefinedRateParametersOrdering(State *s, Mappings *out, Error *e) { ordering(s, out, 1, e); }
 #define COUNT(Name, expression) size_t Name(State *s, Error *e) { NoError(e); if (!s) { tmt_error(e, "state required"); return 0; } return (size_t)(expression); }
-COUNT(GetNumberOfGridCells, tmc_state_num_cells(s->native))
+COUNT(GetNumberOfGridCells, s->cells)
 COUNT(GetNumberOfSpecies, tmc_state_num_variables(s->native))
 COUNT(GetNumberOfUserDefinedRateParameters, tmc_solver_num_custom_parameters(s->owner->solver))
 static void strides(State *s, Error *e, size_t *row, size_t *col, int params) {
   NoError(e); if (!s || !row || !col) { tmt_error(e, "state and stride outputs required"); return; }
   tmc_dense *m = params ? tmc_state_custom_rate_parameters(s->native) : tmc_state_variables(s->native);
+  if (s->owner->tier1) { *row = (size_t)m->n_cols; *col = 1; return; }
   *row = tmc_dense_row_stride(m); *col = tmc_dense_column_stride(m);
 }
 void GetConcentrationsStrides(State *s, Error *e, size_t *row, size_t *col) { strides(s, e, row, col, 0); }
 void GetUserDefinedRateParametersStrides(State *s, Error *e, size_t *row, size_t *col) { strides(s, e, row, col, 1); }
+#include "tier1.inc"
 void MicmSolve(MICM *m, State *s, double dt, String *result, SolverResultStats *stats, Error *e) {
   NoError(e);
   if (!m || !s || s->owner != m || !result || !stats || !isfinite(dt) || dt < 0) { tmt_error(e, "invalid solver, state, time step, or result output"); return; }
+  if (m->tier1) { tier1_solve(m, s, dt, result, stats, e); return; }
   tmc_dense *y = tmc_state_variables(s->native), *p = tmc_state_custom_rate_parameters(s->native);
   size_t nc = (size_t)tmc_state_num_cells(s->native);
   for (size_t i = 0; i < nc; ++i) {
@@ -296,7 +340,7 @@ void MicmSolve(MICM *m, State *s, double dt, String *result, SolverResultStats *
  * with no outstanding state references. Rebuild before publishing the change. */
 void TmtConfigureFable(MICM *m, TmtFableProfile profile, Error *e) {
   NoError(e);
-  if (!m || backward(m->type) || atomic_load(&m->references) != 1 || profile < 1 || profile > 3) {
+  if (!m || m->tier1 || backward(m->type) || atomic_load(&m->references) != 1 || profile < 1 || profile > 3) {
     tmt_error(e, "Fable profile requires a Rosenbrock solver without existing states and a profile in [1,3]"); return;
   }
   tmc_rosenbrock_parameters ros = profile == 1 ? tmc_rosenbrock_four_stage_dae() : tmc_rosenbrock_three_stage();

@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0", "name": "Tier 1 packing and rate updates", "relative tolerance": 1e-8,
+  "species": [{"name": "A", "absolute tolerance": 1e-14}, {"name": "B", "absolute tolerance": 2e-14}],
+  "phases": [{"name": "gas", "species": [{"name": "A"}, {"name": "B"}]}],
+  "reactions": [
+    {"type": "ARRHENIUS", "A": 0.2, "C": -100.0,
+     "reactants": [{"species name": "A", "coefficient": 1}],
+     "products": [{"species name": "B", "coefficient": 1}], "gas phase": "gas"},
+    {"type": "PHOTOLYSIS", "name": "back", "scaling factor": 1.0,
+     "reactants": [{"species name": "B", "coefficient": 1}],
+     "products": [{"species name": "A", "coefficient": 1}], "gas phase": "gas"}
+  ]
+}

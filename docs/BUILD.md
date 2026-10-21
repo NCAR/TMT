@@ -68,7 +68,8 @@ constructor. Prepared loading starts no subprocess. Source input starts Python
 for normalization/cache validation and the compiler with `--version`. A cache
 miss also starts Fable's generator and compiles the generated source.
 Diagnostics and input manifests remain beside the artifact.
-Width 1 is required by standard-order solvers, width 2 by vector-order solvers.
+By default, width 1 is required by standard-order solvers and width 2 by
+vector-order solvers. The Tier 1 opt-in below is the exception.
 
 Native `TmtPrepareOptions` and Python `tmt.prepare` allow explicit tool/source/
 runtime/cache paths. Environment equivalents are `TMT_PYTHON`, `TMT_CC`,
@@ -76,6 +77,35 @@ runtime/cache paths. Environment equivalents are `TMT_PYTHON`, `TMT_CC`,
 Compiler overrides are executable paths, without embedded flags. `TMT_SYSROOT`
 overrides a configured SDK. No shell interprets these paths. The default cache
 is `$HOME/.cache/tmt/mechanisms`; set `TMT_CACHE` for project-local outputs.
+
+### Tier 1 groups behind a standard-order interface
+
+Set `TMT_MICM_TIER1=1` before constructing a `RosenbrockStandardOrder` solver
+to select fast kernels, minimum-fill ordering and width 2. The adapter divides
+each state into independent groups of at most 32 cells, packing and unpacking
+its stable row-major public concentration and custom-parameter arrays. Hosts
+using ordinary cell/species strides need no source changes. Other solver types
+retain their existing behavior. Without this environment setting, defaults
+remain unchanged.
+
+The method remains three-stage Rosenbrock with the MICM step controller and
+the host's relative and per-species absolute tolerances. Each group controls
+its own steps and error norm, so concentrations need not be bitwise identical
+to a single large state. Validate the application's accuracy requirements.
+Prepared artifacts used with this setting must have width 2; prepare them with
+fast mode and minimum-fill ordering to reproduce this configuration. The
+`configure_fable` profiles cannot be combined with this opt-in.
+
+Returned counters sum work across the internal groups. A successful call
+publishes all groups and reports the requested final time. If any group fails,
+public concentrations remain unchanged and final time is zero; a subsequent
+call restarts all groups from that public state.
+
+For per-call timing, set `TMT_MICM_TRACE_DIR` to an existing writable directory.
+Each state that solves writes a separate CSV with MPI rank (from `PMI_RANK`),
+cell/group counts, wall seconds and summed solver counters. Timings include
+validation, packing, solving and unpacking; they exclude writing the trace
+itself. Trace output is optional and is only available with this Tier 1 path.
 
 `from tmt import configure_fable; configure_fable(solver, 'extrapolation')`
 selects the recommended reference method **before creating states**. `l2` and
