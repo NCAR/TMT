@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use TMT, please cite this archived release."
+type: software
+title: "NCAR/TMT: v2026.10.001-beta"
+authors:
+  - family-names: Fillmore
+    given-names: David
+    affiliation: NSF NCAR
+version: v2026.10.001-beta
+date-released: 2026-10-26
+doi: 10.5281/zenodo.23667458
+url: https://doi.org/10.5281/zenodo.23667458
+repository-code: https://github.com/NCAR/TMT

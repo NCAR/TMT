@@ -1,5 +1,7 @@
 # TMT
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23667458.svg)](https://doi.org/10.5281/zenodo.23667458)
+
 MUSICA-compatible C, Fortran, and Python interfaces for the Fable reference
 chemistry solver and TurboTUV.
 
@@ -25,3 +27,13 @@ ctest --test-dir build --output-on-failure
 Select compatible C/Fortran compilers and an OpenMP runtime as described in the
 build guide. Libraries, modules, headers, Python packages, and preparation
 support install with `cmake --install build --prefix <destination>`.
+
+## Citation
+
+Please cite the archived TMT release when using this software:
+
+Fillmore, D. (2026). *NCAR/TMT: v2026.10.001-beta* [Software]. Zenodo.
+[https://doi.org/10.5281/zenodo.23667458](https://doi.org/10.5281/zenodo.23667458).
+
+This DOI identifies release `v2026.10.001-beta`, published on 2026-10-26.
+Machine-readable citation metadata is in [CITATION.cff](CITATION.cff).
